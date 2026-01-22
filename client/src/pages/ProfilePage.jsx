@@ -1,17 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { AuthContext } from "../../context/Authcontext.jsx";
 import assets from "../assets/assets";
 
 const ProfilePage = () => {
-  const [Selectedimg, Setselectedimg] = useState(null);
+  const { authUser, updateProfile } = useContext(AuthContext);
+
+  const [SelectedImg, SetSelectedImg] = useState(null);
   const navigate = useNavigate();
-  const [name, setname] = useState("martin");
-  const [bio, setbio] = useState("hi eveyone");
+  const [name, setName] = useState(authUser?.fullName || "");
+  const [bio, setBio] = useState(authUser?.bio || "Hi everyone!");
 
   const handlesubmit = async (e) => {
     e.preventDefault();
-    navigate("/");
+    if (!SelectedImg) {
+      await updateProfile({ fullName: name, bio });
+      navigate("/");
+      return;
+    }
+    const reader = new FileReader();
+    reader.readAsDataURL(SelectedImg);
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      await updateProfile({ profilepic: base64Image, fullName: name, bio });
+      navigate("/");
+    };
   };
 
   return (
@@ -30,7 +43,7 @@ const ProfilePage = () => {
             className="flex items-center gap-3 cursor-pointer"
           >
             <input
-              onClick={(e) => Setselectedimg(e.target.files[0])}
+              onChange={(e) => SetSelectedImg(e.target.files[0])}
               type="file"
               id="avatar"
               accept=".png, .jpg, .jpeg"
@@ -38,17 +51,17 @@ const ProfilePage = () => {
             />
             <img
               src={
-                Selectedimg
-                  ? URL.createObjectURL(Selectedimg)
+                SelectedImg
+                  ? URL.createObjectURL(SelectedImg)
                   : assets.avatar_icon
               }
               alt=""
-              className={`w-12 h-12 ${Selectedimg && "rounded-full"}`}
+              className={`w-12 h-12 ${SelectedImg && "rounded-full"}`}
             />
             Upload profile image
           </label>
           <input
-            onChange={(e) => setname(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
             value={name}
             type="text"
             required
@@ -56,7 +69,7 @@ const ProfilePage = () => {
             className="p-2 border border-gray-500 rounded-md focus:outline-none focus:ring-2 focus:ring-voiler-500"
           />
           <textarea
-            onChange={(e) => setbio(e.target.value)}
+            onChange={(e) => setBio(e.target.value)}
             value={bio}
             placeholder="Write profile bio"
             required
@@ -72,8 +85,8 @@ const ProfilePage = () => {
           </button>
         </form>
         <img
-          className="max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10"
-          src={assets.logo_icon}
+          className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${SelectedImg && "rounded-full"}`}
+          src={ authUser?.profilepic || assets.logo_icon}
           alt=""
         />
       </div>

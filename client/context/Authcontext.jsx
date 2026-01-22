@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await axios.post(`api/auth/${state}`, credentials);
       if (data.success) {
-        setAuthUser(data.user);
+        setAuthUser(data.userData);
         connectSocket(data.userData);
         axios.defaults.headers.common["token"] = data.token;
         setToken(data.token);
@@ -66,10 +66,12 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (body) => {
     try {
-      const { data } = await axios.put("/api/auth/updata-profile", body);
+      const { data } = await axios.put("/api/auth/update-profile", body);
       if (data.success) {
         setAuthUser(data.user);
         toast.success("profile updated successfully");
+      } else {
+        toast.error(data.message || "Failed to update profile");
       }
     } catch (error) {
       toast.error(error.message);
@@ -107,7 +109,7 @@ export const AuthProvider = ({ children }) => {
     socket,
     login,
     logout,
-    updateProfile
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

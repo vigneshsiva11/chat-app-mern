@@ -6,10 +6,10 @@ import cloudinary from "../lib/cloudinary.js";
 // User Signup Controller
 
 export const Signup = async (req, res) => {
-  const { fullname, email, password, bio } = req.body;
+  const { fullName, email, password, bio } = req.body;
 
   try {
-    if (!fullname || !email || !password || !bio) {
+    if (!fullName || !email || !password || !bio) {
       return res.json({ success: false, message: "Missing Details" });
     }
     const user = await User.findOne({ email });
@@ -22,7 +22,7 @@ export const Signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newuser = await User.create({
-      fullname,
+      fullName,
       email,
       password: hashedPassword,
       bio,
@@ -49,7 +49,7 @@ export const Signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { fullname, email, password, bio } = req.body;
+    const { fullName, email, password, bio } = req.body;
     const userData = await User.findOne({ email });
 
     const isPasswordCorrect = await bcrypt.compare(password, userData.password);
@@ -85,22 +85,22 @@ export const checkAuth = (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { profilepic, bio, fullname } = req.body;
+    const { profilepic, bio, fullName } = req.body;
     const userId = req.user._id;
     let updateduser;
 
     if (!profilepic) {
       updateduser = await User.findByIdAndUpdate(
         userId,
-        { bio, fullname },
-        { new: true }
+        { bio, fullName },
+        { new: true },
       );
     } else {
-      const upload = await cloudinary.uploadeupload(profilepic);
+      const upload = await cloudinary.uploader.upload(profilepic);
       updateduser = await User.findByIdAndUpdate(
         userId,
-        { profilepic: upload.secure_url, bio, fullname },
-        { new: true }
+        { profilepic: upload.secure_url, bio, fullName },
+        { new: true },
       );
     }
     res.json({

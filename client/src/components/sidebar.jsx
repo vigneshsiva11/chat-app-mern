@@ -1,14 +1,35 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import assets, { userDummyData } from "../assets/assets";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/Authcontext.jsx";
+import { chatContext } from "../../context/ChatContext.jsx";
 
-const Sidebar = ({ Selecteduser, SetSelecteduser }) => {
+const Sidebar = () => {
+  const {
+    getUsers,
+    users,
+    selectedUser,
+    setSelectedUser,
+    unseenMessages,
+    setUnseenMessages,
+  } = useContext(chatContext);
+
+  const { logout, onlineUsers } = useContext(AuthContext);
+
+  const [input, setInput] = useState(false);
+
   const navigate = useNavigate();
+
+  const filteredUsers = input
+    ? users.filter((user) =>
+        user.fullName.toLowerCase().includes(input.toLowerCase()),
+      )
+    : users;
 
   return (
     <div
       className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-auto text-white ${
-        Selecteduser ? "max-md:hidden" : ""
+        selectedUser ? "max-md:hidden" : ""
       }`}
     >
       <div className="pb-5">
@@ -28,7 +49,9 @@ const Sidebar = ({ Selecteduser, SetSelecteduser }) => {
                 Edit Profile
               </p>
               <hr className="my-2 border-t border-gray-500"></hr>
-              <p className="cursor-pointer text-sm">Logout</p>
+              <p onClick={() => logout()} className="cursor-pointer text-sm">
+                Logout
+              </p>
             </div>
           </div>
         </div>
@@ -36,6 +59,7 @@ const Sidebar = ({ Selecteduser, SetSelecteduser }) => {
         <div className="bg-[#282142] rounded-full flex items-center gap-2 py-3 px-4 mt-5 ">
           <img src={assets.search_icon} alt="search" className="w-3" />
           <input
+            onChange={(e) => setInput(e.target.value)}
             type="text"
             className="bg-transparent border-none outline-none text-white text-xs placeholder-[#c8c8c8] flex-1 "
             placeholder="Search User..."

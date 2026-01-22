@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import assets from "../assets/assets";
+import { AuthContext } from "../../context/Authcontext";
 
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign up");
@@ -9,13 +10,21 @@ const LoginPage = () => {
   const [bio, setbio] = useState("");
   const [isDataSubmitted, setisDataSubmitted] = useState(false);
 
+  const { login } = useContext(AuthContext);
+
   const onSubmitHandler = (event) => {
     event.preventDefault();
-    if(currState==='Sign up' && !isDataSubmitted){
-      setisDataSubmitted(true)
+    if (currState === "Sign up" && !isDataSubmitted) {
+      setisDataSubmitted(true);
       return;
     }
-  }
+    login(currState === "Sign up" ? "signup" : "login", {
+      fullName: Fullname,
+      email,
+      password,
+      bio,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-cover bg-center flex items-center justify-center gap-8 sm:justify-evenly max-sm:flex:com backdrop-blur-2xl">
@@ -23,19 +32,20 @@ const LoginPage = () => {
       <img src={assets.logo_big} alt="" className="w-[min(30vw,250px)]" />
       {/* right  */}
 
-      <form onSubmit={onSubmitHandler}
+      <form
+        onSubmit={onSubmitHandler}
         className="border-2 bg-white/8 text-white border-gray-500 p-6 flex flex-col gap-6 rounded-lg shadow-lg"
       >
         <h2 className="font-medium text-2xl flex justify-between items-center">
           {currState}
-          {isDataSubmitted && 
+          {isDataSubmitted && (
             <img
               onClick={() => setisDataSubmitted(false)}
               src={assets.arrow_icon}
               alt=""
               className="w-5 cursor-pointer"
             />
-          }
+          )}
         </h2>
 
         {currState === "Sign up" && !isDataSubmitted && (
