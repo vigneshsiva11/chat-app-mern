@@ -1,29 +1,44 @@
-import React from "react";
+import { useContext, useState, useEffect } from "react";
 import assets, { imagesDummyData } from "../assets/assets";
+import { chatContext } from "../../context/ChatContext.jsx";
+import { AuthContext } from "../../context/Authcontext.jsx";
 
 // Accept both prop casings for robustness
-const Rightsidebar = ({ selectedUser, Selecteduser }) => {
+const Rightsidebar = ({ Selecteduser }) => {
+  const { selectedUser, messages } = useContext(chatContext);
+  const { logout, onlineUsers } = useContext(AuthContext);
+  const [msgImages, setMsgImages] = useState([]);
+
+  //get all the images from messages and store in msgImages
+
+  useEffect(() => {
+    setMsgImages(messages.filter((msg) => msg.image).map((msg) => msg.image));
+  }, [messages]);
+
   const user = selectedUser || Selecteduser; // normalize
+
   if (!user) return null; // early return if no user selected
   return (
     <div className="bg-[#8185B2]/10 text-white w-full relative overflow-y-scroll max-md:hidden">
       <div className="pt-16 flex flex-col items-center gap-2 text-xs font-light mx-auto">
         <img
-          src={user?.profilePic || assets.avatar_icon}
+          src={selectedUser?.profilePic || assets.avatar_icon}
           alt=""
           className="w-20 aspect-[1/1] rounded-full"
         />
         <h1 className="px-10 text-xl font-medium mx-auto flex items-center gap-2">
-          <p className="w-2 h-2 rounded-full bg-green-500"></p>
-          {user.fullName}
+          {onlineUsers.includes(selectedUser._id) && (
+            <p className="w-2 h-2 rounded-full bg-green-500"></p>
+          )}
+          {selectedUser.fullName}
         </h1>
-        <p className="px-10 mx-auto">{user.bio}</p>
+        <p className="px-10 mx-auto">{selectedUser.bio}</p>
       </div>
       <hr className="border-[#ffffff50] my-4" />
 
       <div className="px-5 text-xs ">
         <div className="mt-2 max-h-[200px] overflow-y-scroll grid grid-cols-2 gap-4 opacity-80">
-          {imagesDummyData.map((url, index) => (
+          {msgImages.map((url, index) => (
             <div
               key={index}
               onClick={() => window.open(url)}
@@ -34,7 +49,10 @@ const Rightsidebar = ({ selectedUser, Selecteduser }) => {
           ))}
         </div>
       </div>
-      <button className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 via-violet-500 to-violet-600 hover:from-violet-500 hover:to-fuchsia-600 text-white text-sm font-medium py-2 px-20 rounded-full cursor-pointer shadow-lg shadow-violet-700/30 transition-colors duration-300">
+      <button
+        onClick={() => logout()}
+        className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-400 via-violet-500 to-violet-600 hover:from-violet-500 hover:to-fuchsia-600 text-white text-sm font-medium py-2 px-20 rounded-full cursor-pointer shadow-lg shadow-violet-700/30 transition-colors duration-300"
+      >
         logout
       </button>
     </div>

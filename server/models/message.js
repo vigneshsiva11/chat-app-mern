@@ -15,8 +15,18 @@ const messageSchema = new mongoose.Schema(
     text: { type: String },
     image: { type: String },
     seen: { type: Boolean, default: false },
+    reactions: [
+      {
+        userId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        emoji: { type: String, required: true },
+      },
+    ],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Message =

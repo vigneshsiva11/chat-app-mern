@@ -22,7 +22,7 @@ const ProfilePage = () => {
     reader.readAsDataURL(SelectedImg);
     reader.onload = async () => {
       const base64Image = reader.result;
-      await updateProfile({ profilepic: base64Image, fullName: name, bio });
+      await updateProfile({ profilePic: base64Image, fullName: name, bio });
       navigate("/");
     };
   };
@@ -86,7 +86,7 @@ const ProfilePage = () => {
         </form>
         <img
           className={`max-w-44 aspect-square rounded-full mx-10 max-sm:mt-10 ${SelectedImg && "rounded-full"}`}
-          src={ authUser?.profilepic || assets.logo_icon}
+          src={authUser?.profilePic || assets.logo_icon}
           alt=""
         />
       </div>

@@ -4,11 +4,11 @@ import cloudinary from "../lib/cloudinary.js";
 import { io, userSocketMap } from "../server.js";
 
 // get all user except logged in user
-export const getUsersForSidebar = async () => {
+export const getUsersForSidebar = async (req, res) => {
   try {
     const userid = req.user._id;
     const filteredUsers = await User.find({ _id: { $ne: userid } }).select(
-      "-password"
+      "-password",
     );
 
     const unseenMessages = {};
@@ -45,7 +45,7 @@ export const getMessages = async (req, res) => {
     });
     await message.updateMany(
       { senderId: selectedUserId, receiverId: myId },
-      { seen: true }
+      { seen: true },
     );
 
     res.json({ success: true, messages });
@@ -83,7 +83,7 @@ export const sendMessage = async (req, res) => {
       imageUrl = uploadResponse.secure_url;
     }
 
-    const newMessage = message.create({
+    const newMessage = await message.create({
       senderId,
       receiverId,
       text,
@@ -91,7 +91,7 @@ export const sendMessage = async (req, res) => {
     });
 
     // emit new message to receiver socket
- 
+
     const receiverSocketId = userSocketMap[receiverId];
 
     if (receiverSocketId) {
@@ -99,6 +99,130 @@ export const sendMessage = async (req, res) => {
     }
 
     res.json({ success: true, newMessage });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// delete message
+
+export const deleteMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const msg = await message.findById(id);
+
+    if (!msg) {
+      return res.json({ success: false, message: "Message not found" });
+    }
+
+    // Only sender can delete the message
+    if (msg.senderId.toString() !== userId.toString()) {
+      return res.json({
+        success: false,
+        message: "Unauthorized to delete this message",
+      });
+    }
+
+    await message.findByIdAndDelete(id);
+
+    // Emit delete event to receiver
+    const receiverSocketId = userSocketMap[msg.receiverId];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageDeleted", { messageId: id });
+    }
+
+    res.json({ success: true, messageId: id });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// add reaction to message
+
+export const addReaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { emoji } = req.body;
+    const userId = req.user._id;
+
+    const msg = await message.findById(id);
+
+    if (!msg) {
+      return res.json({ success: false, message: "Message not found" });
+    }
+
+    // Check if user already reacted
+    const existingReaction = msg.reactions.find(
+      (r) => r.userId.toString() === userId.toString(),
+    );
+
+    if (existingReaction) {
+      // Update existing reaction
+      existingReaction.emoji = emoji;
+    } else {
+      // Add new reaction
+      msg.reactions.push({ userId, emoji });
+    }
+
+    await msg.save();
+
+    // Emit reaction event to both users
+    const receiverSocketId = userSocketMap[msg.receiverId];
+    const senderSocketId = userSocketMap[msg.senderId];
+
+    const reactionData = { messageId: id, reactions: msg.reactions };
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageReaction", reactionData);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageReaction", reactionData);
+    }
+
+    res.json({ success: true, reactions: msg.reactions });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// remove reaction from message
+
+export const removeReaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const msg = await message.findById(id);
+
+    if (!msg) {
+      return res.json({ success: false, message: "Message not found" });
+    }
+
+    msg.reactions = msg.reactions.filter(
+      (r) => r.userId.toString() !== userId.toString(),
+    );
+
+    await msg.save();
+
+    // Emit reaction event to both users
+    const receiverSocketId = userSocketMap[msg.receiverId];
+    const senderSocketId = userSocketMap[msg.senderId];
+
+    const reactionData = { messageId: id, reactions: msg.reactions };
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageReaction", reactionData);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageReaction", reactionData);
+    }
+
+    res.json({ success: true, reactions: msg.reactions });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
