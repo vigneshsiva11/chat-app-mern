@@ -56,12 +56,15 @@ const Chatcontainer = () => {
         const mod = error.response.data.moderation;
         toast.error(
           `⚠️ Message blocked: ${mod.reason || "Contains inappropriate content"}`,
-          { duration: 5000 }
+          { duration: 5000 },
         );
         if (error.response.data.violations >= 3) {
-          toast.error(`Warning: ${error.response.data.violations} violations. Account may be banned after 5.`, {
-            duration: 7000,
-          });
+          toast.error(
+            `Warning: ${error.response.data.violations} violations. Account may be banned after 5.`,
+            {
+              duration: 7000,
+            },
+          );
         }
       } else {
         toast.error(error.response?.data?.message || "Failed to send message");
@@ -168,9 +171,12 @@ const Chatcontainer = () => {
   }, [showReactionPicker]);
 
   return selectedUser ? (
-    <div className="h-full overflow-scroll relative backdrop-blur-lg">
+    <div className="h-full overflow-hidden relative backdrop-blur-lg flex flex-col">
       {/* top area */}
-      <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500">
+      <div
+        className="flex items-center gap-3 mx-4 border-b border-stone-500 shrink-0"
+        style={{ height: "70px", minHeight: "70px" }}
+      >
         <img
           src={selectedUser.profilePic || assets.avatar_icon}
           alt=""
@@ -194,28 +200,46 @@ const Chatcontainer = () => {
         <img src={assets.help_icon} alt="" className="max-md:hidden max-w-5" />
       </div>
       {/* chat area */}
-      <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-3 pb-6">
+      <div className="flex-1 flex flex-col overflow-y-auto p-3 pb-6">
         {messages.map((msg, index) => (
           <div
             key={msg._id || index}
             onMouseEnter={() => setHoveredMessage(msg._id)}
             onMouseLeave={() => setHoveredMessage(null)}
-            className={`flex items-end gap-2 justify-end relative group ${msg.senderId !== authUser._id && "flex-row-reverse"
-              }`}
+            className={`flex items-end gap-2 justify-end relative group ${
+              msg.senderId !== authUser._id && "flex-row-reverse"
+            }`}
           >
             <div className="relative flex items-center gap-2">
               {/* Decorative circles - different colors for different users */}
               <div className="flex gap-1 items-center">
-                <div className="w-2 h-2 rounded-full" style={{ background: msg.senderId === authUser._id ? '#fbbf24' : '#a855f7' }}></div>
-                <div className="w-2 h-2 rounded-full" style={{ background: msg.senderId === authUser._id ? '#ef4444' : '#ec4899' }}></div>
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background:
+                      msg.senderId === authUser._id ? "#fbbf24" : "#a855f7",
+                  }}
+                ></div>
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background:
+                      msg.senderId === authUser._id ? "#ef4444" : "#ec4899",
+                  }}
+                ></div>
               </div>
 
               <div className="relative">
                 {/* Reply indicator */}
                 {msg.replyTo && (
-                  <div className="px-2 py-1 mb-1 rounded text-xs opacity-70 border-l-2 border-purple-400" style={{ background: 'rgba(139, 92, 246, 0.2)' }}>
+                  <div
+                    className="px-2 py-1 mb-1 rounded text-xs opacity-70 border-l-2 border-purple-400"
+                    style={{ background: "rgba(139, 92, 246, 0.2)" }}
+                  >
                     <div className="font-semibold">Replying to:</div>
-                    <div className="truncate max-w-[180px]">{msg.replyTo.text || "[Image]"}</div>
+                    <div className="truncate max-w-[180px]">
+                      {msg.replyTo.text || "[Image]"}
+                    </div>
                   </div>
                 )}
 
@@ -228,14 +252,15 @@ const Chatcontainer = () => {
                 ) : (
                   <div>
                     <p
-                      className={`p-3 max-w-[200px] md:text-sm font-light rounded-2xl mb-8 break-all text-white ${msg.senderId === authUser._id
-                        ? "rounded-br-none"
-                        : "rounded-bl-none"
-                        }`}
+                      className={`p-3 max-w-[200px] md:text-sm font-light rounded-2xl mb-8 break-all text-white ${
+                        msg.senderId === authUser._id
+                          ? "rounded-br-none"
+                          : "rounded-bl-none"
+                      }`}
                       style={{
-                        background: 'rgba(139, 92, 246, 0.4)',
-                        border: '1px solid rgba(168, 85, 247, 0.5)',
-                        backdropFilter: 'blur(10px)'
+                        background: "rgba(139, 92, 246, 0.4)",
+                        border: "1px solid rgba(168, 85, 247, 0.5)",
+                        backdropFilter: "blur(10px)",
                       }}
                     >
                       {msg.text}
@@ -243,7 +268,9 @@ const Chatcontainer = () => {
                     {/* Edited indicator */}
                     {/* Edited indicator */}
                     {msg.isEdited && (
-                      <span className="text-xs text-gray-400 absolute bottom-0 right-0 mb-8">edited</span>
+                      <span className="text-xs text-gray-400 absolute bottom-0 right-0 mb-8">
+                        edited
+                      </span>
                     )}
 
                     {/* Translation Result Display */}
@@ -261,7 +288,9 @@ const Chatcontainer = () => {
                                 setTranslationMap(newMap);
                               }}
                               className="text-gray-400 hover:text-white"
-                            >✕</button>
+                            >
+                              ✕
+                            </button>
                           </div>
                           {translationMap[msg._id].translated}
                         </div>
@@ -284,10 +313,11 @@ const Chatcontainer = () => {
                 {/* Action buttons - show on hover */}
                 {hoveredMessage === msg._id && (
                   <div
-                    className={`reaction-picker-container absolute top-0 flex gap-1 ${msg.senderId === authUser._id
-                      ? "right-full mr-2"
-                      : "left-full ml-2"
-                      }`}
+                    className={`reaction-picker-container absolute top-0 flex gap-1 ${
+                      msg.senderId === authUser._id
+                        ? "right-full mr-2"
+                        : "left-full ml-2"
+                    }`}
                   >
                     {/* Reaction button */}
                     <button
@@ -328,7 +358,12 @@ const Chatcontainer = () => {
                     {msg.text && (
                       <TranslateButton
                         message={msg}
-                        onTranslate={(result) => setTranslationMap({ ...translationMap, [msg._id]: result })}
+                        onTranslate={(result) =>
+                          setTranslationMap({
+                            ...translationMap,
+                            [msg._id]: result,
+                          })
+                        }
                       />
                     )}
 
@@ -347,10 +382,11 @@ const Chatcontainer = () => {
                 {/* Reaction picker */}
                 {showReactionPicker === msg._id && (
                   <div
-                    className={`reaction-picker-container absolute top-8 z-10 bg-gray-800 rounded-lg p-2 flex gap-2 shadow-lg ${msg.senderId === authUser._id
-                      ? "right-full mr-2"
-                      : "left-full ml-2"
-                      }`}
+                    className={`reaction-picker-container absolute top-8 z-10 bg-gray-800 rounded-lg p-2 flex gap-2 shadow-lg ${
+                      msg.senderId === authUser._id
+                        ? "right-full mr-2"
+                        : "left-full ml-2"
+                    }`}
                   >
                     {emojis.map((emoji) => (
                       <button
@@ -386,21 +422,42 @@ const Chatcontainer = () => {
       </div>
 
       {/* bottom area */}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
+      <div className="shrink-0 p-3 bg-transparent">
         {/* Reply preview */}
         {replyingTo && (
-          <div className="flex items-center justify-between mb-2 px-4 py-2 rounded-lg" style={{ background: 'rgba(139, 92, 246, 0.3)', border: '1px solid rgba(168, 85, 247, 0.5)' }}>
+          <div
+            className="flex items-center justify-between mb-2 px-4 py-2 rounded-lg"
+            style={{
+              background: "rgba(139, 92, 246, 0.3)",
+              border: "1px solid rgba(168, 85, 247, 0.5)",
+            }}
+          >
             <div className="flex-1">
-              <div className="text-xs text-gray-300 font-semibold">Replying to:</div>
-              <div className="text-sm text-white truncate">{replyingTo.text || "[Image]"}</div>
+              <div className="text-xs text-gray-300 font-semibold">
+                Replying to:
+              </div>
+              <div className="text-sm text-white truncate">
+                {replyingTo.text || "[Image]"}
+              </div>
             </div>
-            <button onClick={() => setReplyingTo(null)} className="text-white hover:text-gray-300">✕</button>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="text-white hover:text-gray-300"
+            >
+              ✕
+            </button>
           </div>
         )}
 
         {/* Edit modal */}
         {editingMessage && (
-          <div className="flex items-center gap-2 mb-2 px-4 py-2 rounded-lg" style={{ background: 'rgba(76, 175, 80, 0.3)', border: '1px solid rgba(76, 175, 80, 0.5)' }}>
+          <div
+            className="flex items-center gap-2 mb-2 px-4 py-2 rounded-lg"
+            style={{
+              background: "rgba(76, 175, 80, 0.3)",
+              border: "1px solid rgba(76, 175, 80, 0.5)",
+            }}
+          >
             <input
               value={editText}
               onChange={(e) => setEditText(e.target.value)}
@@ -408,8 +465,18 @@ const Chatcontainer = () => {
               className="flex-1 text-sm p-2 border-none rounded outline-none text-white placeholder-gray-400 bg-transparent"
               placeholder="Edit message..."
             />
-            <button onClick={handleSaveEdit} className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs">Save</button>
-            <button onClick={handleCancelEdit} className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs">Cancel</button>
+            <button
+              onClick={handleSaveEdit}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs"
+            >
+              Save
+            </button>
+            <button
+              onClick={handleCancelEdit}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-xs"
+            >
+              Cancel
+            </button>
           </div>
         )}
 
@@ -428,14 +495,16 @@ const Chatcontainer = () => {
           <div
             className="flex-1 flex items-center px-4 rounded-full"
             style={{
-              background: 'rgba(139, 92, 246, 0.2)',
-              border: '1px solid rgba(168, 85, 247, 0.4)'
+              background: "rgba(139, 92, 246, 0.2)",
+              border: "1px solid rgba(168, 85, 247, 0.4)",
             }}
           >
             <input
               onChange={(e) => setInput(e.target.value)}
               value={input}
-              onKeyDown={(e) => (e.key === "Enter" ? handleSendMessage(e) : null)}
+              onKeyDown={(e) =>
+                e.key === "Enter" ? handleSendMessage(e) : null
+              }
               type="text"
               placeholder="Send a Message"
               className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400"
@@ -465,7 +534,7 @@ const Chatcontainer = () => {
       </div>
     </div>
   ) : (
-    <div className="flex flex-col items-center justify-center gap-2 text-gray-500 bg-white/10 max-md:hidden ">
+    <div className="h-full flex flex-col items-center justify-center gap-2 text-gray-500 bg-white/10 max-md:hidden">
       <img src={assets.logo_icon} alt="" className="max-w-16" />
       <p className="text-lg font-medium text-white">Chat anytime</p>
     </div>

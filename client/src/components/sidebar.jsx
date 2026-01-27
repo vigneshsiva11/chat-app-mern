@@ -32,7 +32,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-auto text-white ${
+      className={`bg-[#8185B2]/10 h-full p-5 overflow-hidden flex flex-col text-white ${
         selectedUser ? "max-md:hidden" : ""
       }`}
     >
@@ -71,7 +71,7 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col space-y-2 overflow-y-auto flex-1">
         {filteredUsers.map((user, index) => (
           <div
             onClick={() => setSelectedUser && setSelectedUser(user)}

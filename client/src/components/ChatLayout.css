@@ -1,0 +1,48 @@
+/* Perfect centering layout classes */
+.chat-main-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 2rem;
+}
+
+.chat-grid-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  height: 88vh;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* Responsive grid columns */
+.chat-grid-wrapper.user-selected {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .chat-grid-wrapper:not(.user-selected) {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .chat-grid-wrapper.user-selected {
+    grid-template-columns: 1fr 1.5fr 1fr;
+  }
+}
+
+@media (min-width: 1280px) {
+  .chat-grid-wrapper.user-selected {
+    grid-template-columns: 1fr 2fr 1fr;
+  }
+}
