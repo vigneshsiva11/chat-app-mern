@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6 },
     profilePic: { type: String, default: "" },
     bio: { type: String, default: "" },
+    // AI-related fields
+    preferredLanguage: { type: String, default: "en" },
+    moderationViolations: { type: Number, default: 0 },
+    isBanned: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

@@ -5,6 +5,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import userrouter from "./routes/userRoutes.js";
 import messageRouter from "./routes/MessageRoutes.js";
+import aiRouter from "./routes/aiRoutes.js";
 import { Server } from "socket.io";
 
 // create express app and sever
@@ -54,12 +55,15 @@ app.use(
 
 app.use("/api/status", (req, res) => res.send("Server is running"));
 app.use("/api/auth", userrouter);
-
 app.use("/api/messages", messageRouter);
+app.use("/api/ai", aiRouter);
 
 // connect to database
 await connectDB();
 
 const port = process.env.PORT || 5000;
 
-server.listen(port, () => console.log(`Server is running on port ${port}`));
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+  console.log(`🔑 Gemini API Key Status: ${process.env.GEMINI_API_KEY ? "Loaded ✅" : "Missing ❌"}`);
+});

@@ -42,7 +42,8 @@ export const getMessages = async (req, res) => {
         { senderId: myId, receiverId: selectedUserId },
         { senderId: selectedUserId, receiverId: myId },
       ],
-    });
+    }).populate('replyTo');
+
     await message.updateMany(
       { senderId: selectedUserId, receiverId: myId },
       { seen: true },
@@ -72,7 +73,7 @@ export const markMessageAsSeen = async (req, res) => {
 
 export const sendMessage = async (req, res) => {
   try {
-    const { text, image } = req.body;
+    const { text, image, replyTo } = req.body;
     const receiverId = req.params.id;
     const senderId = req.user._id;
 
@@ -88,7 +89,13 @@ export const sendMessage = async (req, res) => {
       receiverId,
       text,
       image: imageUrl,
+      replyTo: replyTo || null,
     });
+
+    // Populate replyTo if it exists
+    if (newMessage.replyTo) {
+      await newMessage.populate('replyTo');
+    }
 
     // emit new message to receiver socket
 
@@ -135,6 +142,59 @@ export const deleteMessage = async (req, res) => {
     }
 
     res.json({ success: true, messageId: id });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// edit message
+
+export const editMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { text } = req.body;
+    const userId = req.user._id;
+
+    const msg = await message.findById(id);
+
+    if (!msg) {
+      return res.json({ success: false, message: "Message not found" });
+    }
+
+    // Only sender can edit the message
+    if (msg.senderId.toString() !== userId.toString()) {
+      return res.json({
+        success: false,
+        message: "Unauthorized to edit this message",
+      });
+    }
+
+    // Update message
+    msg.text = text;
+    msg.isEdited = true;
+    msg.editedAt = new Date();
+    await msg.save();
+
+    // Emit edit event to receiver
+    const receiverSocketId = userSocketMap[msg.receiverId];
+    const senderSocketId = userSocketMap[msg.senderId];
+
+    const editData = {
+      messageId: id,
+      text,
+      isEdited: true,
+      editedAt: msg.editedAt,
+    };
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageEdited", editData);
+    }
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("messageEdited", editData);
+    }
+
+    res.json({ success: true, message: msg });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

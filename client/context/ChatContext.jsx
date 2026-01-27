@@ -81,6 +81,30 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  // function to edit message
+
+  const editMessage = async (messageId, text) => {
+    try {
+      const { data } = await axios.put(`/api/messages/edit/${messageId}`, {
+        text,
+      });
+      if (data.success) {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg._id === messageId
+              ? { ...msg, text, isEdited: true, editedAt: data.message.editedAt }
+              : msg,
+          ),
+        );
+        toast.success("Message edited");
+      } else {
+        toast.error(data.message || "Failed to edit message");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   // function to add reaction to message
 
   const addReaction = async (messageId, emoji) => {
@@ -148,11 +172,11 @@ export const ChatProvider = ({ children }) => {
         prevUsers.map((user) =>
           user._id === updatedProfile.userId
             ? {
-                ...user,
-                profilePic: updatedProfile.profilePic,
-                fullName: updatedProfile.fullName,
-                bio: updatedProfile.bio,
-              }
+              ...user,
+              profilePic: updatedProfile.profilePic,
+              fullName: updatedProfile.fullName,
+              bio: updatedProfile.bio,
+            }
             : user,
         ),
       );
@@ -183,6 +207,15 @@ export const ChatProvider = ({ children }) => {
         ),
       );
     });
+
+    // Listen for message edits
+    socket.on("messageEdited", ({ messageId, text, isEdited, editedAt }) => {
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id === messageId ? { ...msg, text, isEdited, editedAt } : msg,
+        ),
+      );
+    });
   };
 
   // function to unsubscribe from messages
@@ -193,6 +226,7 @@ export const ChatProvider = ({ children }) => {
     socket.off("profileUpdated");
     socket.off("messageDeleted");
     socket.off("messageReaction");
+    socket.off("messageEdited");
   };
 
   useEffect(() => {
@@ -208,6 +242,7 @@ export const ChatProvider = ({ children }) => {
     getMessages,
     sendMessage,
     deleteMessage,
+    editMessage,
     addReaction,
     removeReaction,
     setSelectedUser,

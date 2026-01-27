@@ -15,6 +15,22 @@ const messageSchema = new mongoose.Schema(
     text: { type: String },
     image: { type: String },
     seen: { type: Boolean, default: false },
+    isEdited: { type: Boolean, default: false },
+    editedAt: { type: Date },
+    replyTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Message",
+    },
+    // AI-related fields
+    isToxic: { type: Boolean, default: false },
+    moderationScore: { type: Number },
+    moderationCategories: [String],
+    translations: [{
+      language: { type: String },      // 'ta', 'hi', 'fr', etc.
+      text: { type: String },
+      translatedAt: { type: Date, default: Date.now }
+    }],
+    aiProcessed: { type: Boolean, default: false },
     reactions: [
       {
         userId: {
