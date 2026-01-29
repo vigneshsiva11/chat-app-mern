@@ -37,12 +37,14 @@ export const getMessages = async (req, res) => {
     const { id: selectedUserId } = req.params;
     const myId = req.user._id;
 
-    const messages = await message.find({
-      $or: [
-        { senderId: myId, receiverId: selectedUserId },
-        { senderId: selectedUserId, receiverId: myId },
-      ],
-    }).populate('replyTo');
+    const messages = await message
+      .find({
+        $or: [
+          { senderId: myId, receiverId: selectedUserId },
+          { senderId: selectedUserId, receiverId: myId },
+        ],
+      })
+      .populate("replyTo");
 
     await message.updateMany(
       { senderId: selectedUserId, receiverId: myId },
@@ -94,7 +96,7 @@ export const sendMessage = async (req, res) => {
 
     // Populate replyTo if it exists
     if (newMessage.replyTo) {
-      await newMessage.populate('replyTo');
+      await newMessage.populate("replyTo");
     }
 
     // emit new message to receiver socket

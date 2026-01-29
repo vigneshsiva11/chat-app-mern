@@ -14,10 +14,19 @@ const app = express();
 
 const server = http.createServer(app);
 
-//initialize socket io
+//initialize socket io with proper CORS
+
+const socketOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 export const io = new Server(server, {
-  cors: { origin: "*" },
+  cors: { 
+    origin: socketOrigins,
+    credentials: true,
+  },
 });
 
 // store online users
@@ -44,9 +53,26 @@ io.on("connection", (socket) => {
 // middleware setup
 
 app.use(express.json({ limit: "4mb" }));
+
+// CORS configuration for production and development
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174", 
+  process.env.FRONTEND_URL, // Your Vercel frontend URL
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "token"],
@@ -63,12 +89,12 @@ await connectDB();
 
 const port = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== "production") {
-  server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
-}
+// Start server (Railway will set NODE_ENV automatically)
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
 
-// export server for vercel
+// export server for serverless platforms
 
 export default server;
