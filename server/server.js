@@ -23,7 +23,7 @@ const socketOrigins = [
 ].filter(Boolean);
 
 export const io = new Server(server, {
-  cors: { 
+  cors: {
     origin: socketOrigins,
     credentials: true,
   },
@@ -57,7 +57,7 @@ app.use(express.json({ limit: "4mb" }));
 // CORS configuration for production and development
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://localhost:5174", 
+  "http://localhost:5174",
   process.env.FRONTEND_URL, // Your Vercel frontend URL
 ].filter(Boolean);
 
@@ -66,7 +66,7 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -92,7 +92,7 @@ const port = process.env.PORT || 5000;
 // Start server (Railway will set NODE_ENV automatically)
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 });
 
 // export server for serverless platforms
