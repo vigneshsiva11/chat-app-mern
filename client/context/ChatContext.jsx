@@ -59,7 +59,9 @@ export const ChatProvider = ({ children }) => {
         toast.error(data.message || "Failed to send message");
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Send message error:", error);
+      // Throw the error so chatcontainer can handle it properly
+      throw error;
     }
   };
 
@@ -92,7 +94,12 @@ export const ChatProvider = ({ children }) => {
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
             msg._id === messageId
-              ? { ...msg, text, isEdited: true, editedAt: data.message.editedAt }
+              ? {
+                  ...msg,
+                  text,
+                  isEdited: true,
+                  editedAt: data.message.editedAt,
+                }
               : msg,
           ),
         );
@@ -172,11 +179,11 @@ export const ChatProvider = ({ children }) => {
         prevUsers.map((user) =>
           user._id === updatedProfile.userId
             ? {
-              ...user,
-              profilePic: updatedProfile.profilePic,
-              fullName: updatedProfile.fullName,
-              bio: updatedProfile.bio,
-            }
+                ...user,
+                profilePic: updatedProfile.profilePic,
+                fullName: updatedProfile.fullName,
+                bio: updatedProfile.bio,
+              }
             : user,
         ),
       );

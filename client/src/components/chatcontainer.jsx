@@ -52,19 +52,46 @@ const Chatcontainer = () => {
       setInput("");
       setReplyingTo(null);
     } catch (error) {
-      // Handle moderation errors
-      if (error.response?.data?.moderation) {
+      // Handle banned user (403)
+      if (error.response?.status === 403) {
+        if (error.response.data?.banned) {
+          toast.error(
+            "🚫 " +
+              (error.response.data.message ||
+                "Your account has been banned due to repeated violations"),
+            { duration: 8000 },
+          );
+        } else {
+          toast.error(error.response.data?.message || "Access forbidden");
+        }
+        return;
+      }
+
+      // Handle toxic content blocking (400)
+      if (error.response?.data?.moderation || error.response?.status === 400) {
         const mod = error.response.data.moderation;
         toast.error(
-          `⚠️ Message blocked: ${mod.reason || "Contains inappropriate content"}`,
-          { duration: 5000 },
+          `🛡️ This is a toxic message. You are not allowed to send.`,
+          {
+            duration: 5000,
+            style: {
+              background: "#ef4444",
+              color: "#fff",
+              fontWeight: "bold",
+            },
+          },
         );
+
+        // Show additional details if available
+        if (mod?.reason) {
+          toast.error(`Reason: ${mod.reason}`, { duration: 4000 });
+        }
+
+        // Warn about violations
         if (error.response.data.violations >= 3) {
           toast.error(
-            `Warning: ${error.response.data.violations} violations. Account may be banned after 5.`,
-            {
-              duration: 7000,
-            },
+            `⚠️ Warning: ${error.response.data.violations} violations recorded. Account will be banned after 5 violations.`,
+            { duration: 7000 },
           );
         }
       } else {
