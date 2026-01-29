@@ -1,6 +1,6 @@
 import { aiService } from "../services/aiService.js";
 import ModerationLog from "../models/ModerationLog.js";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 /**
  * Content moderation middleware for message sending

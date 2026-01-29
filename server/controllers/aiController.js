@@ -2,7 +2,7 @@ import { aiService } from "../services/aiService.js";
 import { cacheService } from "../services/cacheService.js";
 import Message from "../models/message.js";
 import ChatSummary from "../models/ChatSummary.js";
-import User from "../models/User.js";
+import User from "../models/user.js";
 
 /**
  * Summarize chat conversation
