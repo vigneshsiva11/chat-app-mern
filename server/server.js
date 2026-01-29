@@ -63,7 +63,12 @@ await connectDB();
 
 const port = process.env.PORT || 5000;
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-  console.log(`🔑 Gemini API Key Status: ${process.env.GEMINI_API_KEY ? "Loaded ✅" : "Missing ❌"}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
+
+// export server for vercel
+
+export default server;
