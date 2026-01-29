@@ -13,8 +13,8 @@ const getGenAI = () => {
   return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 };
 
-// Target model (can be overridden in .env if 1.5-flash has 0 quota)
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash-latest";
+// Target model (can be overridden in .env)
+const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-pro";
 
 /**
  * Helper function to handle 429 Rate Limit errors with robust retry
@@ -223,6 +223,78 @@ Text: "${text}"`;
       return result.response.text().trim().toLowerCase().substring(0, 2);
     } catch (error) {
       return "en";
+    }
+  },
+
+  /**
+   * Transcribe audio to text using Gemini API
+   * Uses multimodal capabilities of newer Gemini models
+   */
+  async transcribeAudio(audioData, mimeType = "audio/webm") {
+    try {
+      console.log("🎤 Audio transcription requested (High Priority)...");
+
+      const genAI = getGenAI();
+
+      // Use gemini-2.5-flash which supports audio
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      // Extract base64 data without the data URL prefix
+      let base64Audio = audioData;
+      if (audioData.includes("base64,")) {
+        base64Audio = audioData.split("base64,")[1];
+      }
+
+      // Prepare the audio data for Gemini
+      const audioPart = {
+        inlineData: {
+          data: base64Audio,
+          mimeType: mimeType,
+        },
+      };
+
+      // Create prompt for transcription
+      const prompt =
+        "Please transcribe the audio content into text. Only return the spoken text, nothing else.";
+
+      try {
+        const result = await generateWithRetry(
+          model,
+          [prompt, audioPart],
+          "high",
+        );
+        const transcription = result.response.text().trim();
+
+        if (transcription && transcription.length > 0) {
+          console.log(
+            "✅ Audio transcribed successfully:",
+            transcription.substring(0, 50) + "...",
+          );
+          return transcription;
+        } else {
+          console.warn("⚠️ Empty transcription result");
+          return "Could not transcribe audio. Please speak clearly and try again.";
+        }
+      } catch (apiError) {
+        console.error("❌ Gemini API error:", apiError.message);
+
+        // Check if it's a model not supporting audio
+        if (
+          apiError.message.includes("does not support") ||
+          apiError.message.includes("multimodal")
+        ) {
+          console.warn(
+            "⚠️ Current model doesn't support audio, falling back...",
+          );
+          return "Audio transcription is not supported with the current model. Please type your message manually.";
+        }
+
+        throw apiError;
+      }
+    } catch (error) {
+      console.error("❌ Audio transcription error:", error.message);
+      // Return a helpful fallback message instead of throwing error
+      return "Audio transcription failed. Please try again or type your message manually.";
     }
   },
 };

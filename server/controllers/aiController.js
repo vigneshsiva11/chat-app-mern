@@ -10,7 +10,7 @@ import User from "../models/User.js";
  */
 export const summarizeChat = async (req, res) => {
     try {
-        console.log("📝 Summarize Request received");
+        console.log("Summarize Request received");
         const { receiverId, startTime, endTime } = req.body;
         const senderId = req.user._id;
 
@@ -83,6 +83,7 @@ export const summarizeChat = async (req, res) => {
             bulletPoints: summary.bulletPoints,
             keyDecisions: summary.keyDecisions,
             actionItems: summary.actionItems,
+            participantNames: summary.participants || [], // AI-extracted names
             messageCount: messages.length,
             expiresAt,
         });
@@ -248,6 +249,48 @@ export const getAIStats = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Failed to get stats",
+        });
+    }
+};
+
+/**
+ * Transcribe voice message to text
+ * POST /api/ai/transcribe
+ */
+export const transcribeVoice = async (req, res) => {
+    try {
+        console.log("🎤 Voice transcription request received");
+        const { audioData, mimeType } = req.body;
+
+        if (!audioData) {
+            return res.status(400).json({
+                success: false,
+                message: "Audio data is required",
+            });
+        }
+
+        // Extract base64 data if it includes the data URL prefix
+        let base64Audio = audioData;
+        if (audioData.includes("base64,")) {
+            base64Audio = audioData.split("base64,")[1];
+        }
+
+        // Transcribe the audio using AI service
+        const transcription = await aiService.transcribeAudio(
+            base64Audio,
+            mimeType || "audio/webm"
+        );
+
+        res.json({
+            success: true,
+            transcription: transcription,
+        });
+    } catch (error) {
+        console.error("Voice transcription error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to transcribe audio",
+            error: error.message,
         });
     }
 };

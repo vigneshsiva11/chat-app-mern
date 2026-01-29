@@ -5,6 +5,7 @@ import {
     generateSmartReplies,
     translateMessage,
     getAIStats,
+    transcribeVoice,
 } from "../controllers/aiController.js";
 import { getModerationLogs } from "../middleware/moderationMiddleware.js";
 
@@ -14,6 +15,7 @@ const aiRouter = express.Router();
 aiRouter.post("/summarize", protectRoute, summarizeChat);
 aiRouter.post("/smart-replies", protectRoute, generateSmartReplies);
 aiRouter.post("/translate", protectRoute, translateMessage);
+aiRouter.post("/transcribe", protectRoute, transcribeVoice);
 
 // Stats and logs
 aiRouter.get("/stats", protectRoute, getAIStats);

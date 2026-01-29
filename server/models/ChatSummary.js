@@ -26,7 +26,7 @@ const chatSummarySchema = new mongoose.Schema(
         bulletPoints: [String],
         keyDecisions: [String],
         actionItems: [String],
-        participants: [String],
+        participantNames: [String], // Names extracted from summary
         messageCount: {
             type: Number,
             default: 0,

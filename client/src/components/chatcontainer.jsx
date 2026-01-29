@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import SummarizeButton from "./SummarizeButton";
 import TranslateButton from "./TranslateButton";
 import SmartReplies from "./SmartReplies";
+import VoiceRecorder from "./VoiceRecorder";
 
 const Chatcontainer = () => {
   const {
@@ -524,6 +525,10 @@ const Chatcontainer = () => {
               />
             </label>
           </div>
+
+          {/* Voice Recorder */}
+          <VoiceRecorder onTranscription={(text) => setInput(text)} />
+
           <img
             onClick={handleSendMessage}
             src={assets.send_button}
