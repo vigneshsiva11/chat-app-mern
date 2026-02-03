@@ -185,7 +185,7 @@ PORT=5000
 NODE_ENV=development
 
 # Database
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/chatapp
+MONGODB_URI=you_mangodb_uri
 
 # Authentication
 JWT_SECRET=your_super_secret_jwt_key_here
@@ -481,4 +481,5 @@ Contributions are welcome! Please follow these steps:
 - [Tailwind CSS](https://tailwindcss.com/) - For styling
 
 **Star ⭐ this repository if you find it helpful!**
+
 
