@@ -36,6 +36,23 @@ const Chatcontainer = () => {
 
   const emojis = ["👍", "❤️", "😂", "😮"];
 
+  const showWarningToast = (message, duration = 8000) => {
+    toast.custom((t) => (
+      <div
+        className="flex items-start gap-3 bg-white text-gray-800 rounded-lg shadow-lg px-4 py-3 max-w-[420px]"
+      >
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center"
+          aria-label="Close"
+        >
+          x
+        </button>
+        <div className="flex-1 text-sm">{message}</div>
+      </div>
+    ), { duration });
+  };
+
   //handle sending messages
 
   const handleSendMessage = async (e) => {
@@ -55,11 +72,9 @@ const Chatcontainer = () => {
       // Handle banned user (403)
       if (error.response?.status === 403) {
         if (error.response.data?.banned) {
-          toast.error(
-            "🚫 " +
-              (error.response.data.message ||
-                "Your account has been banned due to repeated violations"),
-            { duration: 8000 },
+          showWarningToast(
+            "Warning: If you do this one more time, your account will be considered banned. You tried to send a toxic message.",
+            8000,
           );
         } else {
           toast.error(error.response.data?.message || "Access forbidden");
@@ -89,9 +104,9 @@ const Chatcontainer = () => {
 
         // Warn about violations
         if (error.response.data.violations >= 3) {
-          toast.error(
-            `⚠️ Warning: ${error.response.data.violations} violations recorded. Account will be banned after 5 violations.`,
-            { duration: 7000 },
+          showWarningToast(
+            "Warning: If you do this one more time, your account will be considered banned. You tried to send a toxic message.",
+            7000,
           );
         }
       } else {
@@ -119,6 +134,50 @@ const Chatcontainer = () => {
       e.target.value = "";
     };
     reader.readAsDataURL(file);
+  };
+
+  const handlePasteImage = async (e) => {
+    const items = e.clipboardData?.items || [];
+    const imageItem = Array.from(items).find((item) =>
+      item.type.startsWith("image/"),
+    );
+
+    if (imageItem) {
+      e.preventDefault();
+      const file = imageItem.getAsFile();
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const messageData = { image: reader.result };
+        if (replyingTo) {
+          messageData.replyTo = replyingTo._id;
+        }
+        try {
+          await sendMessage(messageData);
+          setReplyingTo(null);
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Failed to send image");
+        }
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const textData = e.clipboardData?.getData("text/plain") || "";
+    if (textData.startsWith("data:image/")) {
+      e.preventDefault();
+      const messageData = { image: textData };
+      if (replyingTo) {
+        messageData.replyTo = replyingTo._id;
+      }
+      try {
+        await sendMessage(messageData);
+        setReplyingTo(null);
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to send image");
+      }
+    }
   };
 
   // handle delete message
@@ -530,6 +589,7 @@ const Chatcontainer = () => {
             <input
               onChange={(e) => setInput(e.target.value)}
               value={input}
+              onPaste={handlePasteImage}
               onKeyDown={(e) =>
                 e.key === "Enter" ? handleSendMessage(e) : null
               }

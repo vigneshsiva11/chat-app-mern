@@ -118,6 +118,10 @@ export const moderateMessage = async (req, res, next) => {
  */
 export const checkBanStatus = async (req, res, next) => {
   try {
+    if (process.env.BAN_ENFORCEMENT === "false") {
+      return next();
+    }
+
     const user = await User.findById(req.user._id);
 
     if (!user) {

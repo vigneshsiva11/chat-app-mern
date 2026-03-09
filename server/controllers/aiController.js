@@ -89,10 +89,30 @@ export const summarizeChat = async (req, res) => {
     res.json({ success: true, summary, cached: false });
   } catch (error) {
     console.error("Summarization error:", error);
+    console.error("Error stack:", error.stack);
+
+    let userMessage = "Failed to generate summary";
+    if (error.message.includes("404") || error.message.includes("not found")) {
+      userMessage =
+        "Gemini API not enabled. Enable it at: console.cloud.google.com/apis/library/generativelanguage.googleapis.com";
+    } else if (
+      error.message.includes("INVALID_API_KEY") ||
+      error.message.includes("ACCOUNT_RESTRICTED") ||
+      error.message.includes("API_RESTRICTED")
+    ) {
+      userMessage =
+        "Invalid or restricted API key. Get a new one from: aistudio.google.com/app/apikey";
+    } else if (error.message.includes("API_QUOTA_EXCEEDED")) {
+      userMessage = "AI quota exceeded. Please wait a minute and try again.";
+    } else if (error.message.includes("API")) {
+      userMessage = "AI service temporarily unavailable. Check your API key.";
+    }
+
     res.status(500).json({
       success: false,
-      message: "Failed to generate summary",
+      message: userMessage,
       error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };
@@ -217,10 +237,30 @@ export const translateMessage = async (req, res) => {
     });
   } catch (error) {
     console.error("Translation error:", error);
+    console.error("Error stack:", error.stack);
+
+    let userMessage = "Translation failed";
+    if (error.message.includes("404") || error.message.includes("not found")) {
+      userMessage =
+        "Gemini API not enabled. Enable it at: console.cloud.google.com/apis/library/generativelanguage.googleapis.com";
+    } else if (
+      error.message.includes("INVALID_API_KEY") ||
+      error.message.includes("ACCOUNT_RESTRICTED") ||
+      error.message.includes("API_RESTRICTED")
+    ) {
+      userMessage =
+        "Invalid or restricted API key. Get a new one from: aistudio.google.com/app/apikey";
+    } else if (error.message.includes("API_QUOTA_EXCEEDED")) {
+      userMessage = "AI quota exceeded. Please wait a minute and try again.";
+    } else if (error.message.includes("API")) {
+      userMessage = "AI service temporarily unavailable. Check your API key.";
+    }
+
     res.status(500).json({
       success: false,
-      message: "Translation failed",
+      message: userMessage,
       error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
     });
   }
 };

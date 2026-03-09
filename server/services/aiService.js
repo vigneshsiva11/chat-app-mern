@@ -10,11 +10,63 @@ const getGenAI = () => {
     );
     throw new Error("AI Service configuration error: Missing API Key");
   }
+
+  console.log(
+    "🔑 Using GEMINI_API_KEY:",
+    process.env.GEMINI_API_KEY.substring(0, 10) + "...",
+  );
   return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 };
 
-// Target model (can be overridden in .env)
-const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-pro";
+// Target models (can be overridden in .env). We keep a safe fallback list.
+const PRIMARY_MODEL = process.env.GEMINI_MODEL;
+const DEFAULT_MODEL_CANDIDATES = [
+  PRIMARY_MODEL,
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-pro-latest",
+  "gemini-pro",
+].filter(Boolean);
+
+const uniqueModels = (models) => {
+  const seen = new Set();
+  return models.filter((modelName) => {
+    if (seen.has(modelName)) return false;
+    seen.add(modelName);
+    return true;
+  });
+};
+
+const getModelCandidates = (overrides = []) =>
+  uniqueModels([...(overrides || []), ...DEFAULT_MODEL_CANDIDATES]);
+
+const extractErrorMessage = (error) => {
+  if (!error) return "Unknown error";
+  if (typeof error === "string") return error;
+  return (
+    error?.response?.data?.error?.message ||
+    error?.error?.message ||
+    error?.message ||
+    error.toString()
+  );
+};
+
+const isModelIssue = (error) => {
+  const msg = extractErrorMessage(error).toLowerCase();
+  const status = error?.status || error?.response?.status;
+
+  return (
+    status === 404 ||
+    (msg.includes("model") &&
+      (msg.includes("not found") ||
+        msg.includes("does not exist") ||
+        msg.includes("not supported") ||
+        msg.includes("invalid") ||
+        msg.includes("permission") ||
+        msg.includes("denied")))
+  );
+};
 
 /**
  * Helper function to handle 429 Rate Limit errors with robust retry
@@ -43,9 +95,7 @@ const generateWithRetry = async (model, prompt, priority = "high") => {
     try {
       return await model.generateContent(prompt);
     } catch (error) {
-      const errString = (
-        error.toString() + (error.message || "")
-      ).toLowerCase();
+      const errString = extractErrorMessage(error).toLowerCase();
 
       // Critical Quota 0 check - happens if the API key is restricted or region is unsupported
       if (
@@ -85,6 +135,40 @@ const generateWithRetry = async (model, prompt, priority = "high") => {
   throw new Error("API_QUOTA_EXCEEDED");
 };
 
+const generateWithModelFallback = async (
+  prompt,
+  priority = "high",
+  modelCandidates = [],
+) => {
+  const modelsToTry = getModelCandidates(modelCandidates);
+
+  if (modelsToTry.length === 0) {
+    throw new Error("AI Service configuration error: Missing model list");
+  }
+
+  let lastError = null;
+
+  for (const modelName of modelsToTry) {
+    try {
+      const model = getGenAI().getGenerativeModel({ model: modelName });
+      return await generateWithRetry(model, prompt, priority);
+    } catch (error) {
+      lastError = error;
+
+      if (isModelIssue(error)) {
+        console.warn(
+          `⚠️ Model issue with ${modelName}. Trying next candidate...`,
+        );
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw lastError || new Error("AI request failed with all models");
+};
+
 /**
  * AI Service using Google Gemini API
  */
@@ -95,8 +179,6 @@ export const aiService = {
   async summarizeConversation(conversationText) {
     try {
       console.log("🤖 Generating summary (High Priority)...");
-      const model = getGenAI().getGenerativeModel({ model: MODEL_NAME });
-
       const prompt = `You are a professional meeting summarizer. Analyze the following conversation and provide:
 1. A concise summary in 3-5 bullet points
 2. Important decisions
@@ -114,7 +196,7 @@ Format ONLY as clean JSON:
 Conversation:
 ${conversationText}`;
 
-      const result = await generateWithRetry(model, prompt, "high");
+      const result = await generateWithModelFallback(prompt, "high");
       const response = result.response.text();
       const jsonMatch = response.match(/\{[\s\S]*\}/);
 
@@ -127,8 +209,9 @@ ${conversationText}`;
         participants: [],
       };
     } catch (error) {
-      console.error("❌ Summarization error:", error.message);
-      throw new Error(`Summarization failed: ${error.message}`);
+      const message = extractErrorMessage(error);
+      console.error("Summarization error:", message);
+      throw new Error(`Summarization failed: ${message}`);
     }
   },
 
@@ -137,19 +220,18 @@ ${conversationText}`;
    */
   async generateSmartReplies(messageText, conversationContext = "") {
     try {
-      const model = getGenAI().getGenerativeModel({ model: MODEL_NAME });
       const prompt = `Generate 3 short reply suggestions for: "${messageText}". 
 Recent context: ${conversationContext.substring(0, 200)}
 Respond ONLY with JSON array of strings: ["reply 1", "reply 2", "reply 3"]`;
 
-      const result = await generateWithRetry(model, prompt, "low");
+      const result = await generateWithModelFallback(prompt, "low");
       const response = result.response.text();
       const jsonMatch = response.match(/\[[\s\S]*\]/);
 
       if (jsonMatch) return JSON.parse(jsonMatch[0]).slice(0, 3);
       return ["Thanks!", "Got it", "OK"];
     } catch (error) {
-      console.warn("Smart replies fallback active:", error.message);
+      console.warn("Smart replies fallback active:", extractErrorMessage(error));
       return ["Thanks!", "Sounds good", "OK"];
     }
   },
@@ -164,7 +246,6 @@ Respond ONLY with JSON array of strings: ["reply 1", "reply 2", "reply 3"]`;
         return { flagged: false, categories: {}, severity: "low" };
       }
 
-      const model = getGenAI().getGenerativeModel({ model: MODEL_NAME });
       const prompt = `Analyze toxicity of this text. Respond ONLY with JSON:
 {
   "flagged": bool,
@@ -174,7 +255,7 @@ Respond ONLY with JSON array of strings: ["reply 1", "reply 2", "reply 3"]`;
 }
 Text: "${text}"`;
 
-      const result = await generateWithRetry(model, prompt, "low");
+      const result = await generateWithModelFallback(prompt, "low");
       const response = result.response.text();
       const jsonMatch = response.match(/\{[\s\S]*\}/);
 
@@ -183,13 +264,13 @@ Text: "${text}"`;
     } catch (error) {
       console.warn(
         "Moderation fallback (allowed) due to service error:",
-        error.message,
+        extractErrorMessage(error),
       );
       return {
         flagged: false,
         categories: {},
         severity: "low",
-        error: error.message,
+        error: extractErrorMessage(error),
       };
     }
   },
@@ -200,14 +281,37 @@ Text: "${text}"`;
   async translateText(text, targetLanguage) {
     try {
       console.log(`🌐 Translating to ${targetLanguage} (High Priority)...`);
-      const model = getGenAI().getGenerativeModel({ model: MODEL_NAME });
       const prompt = `Translate this to language code ${targetLanguage}: "${text}". Respond with ONLY the translated text.`;
 
-      const result = await generateWithRetry(model, prompt, "high");
-      return result.response.text().trim();
+      const result = await generateWithModelFallback(prompt, "high");
+      const translatedText = result.response.text().trim();
+      console.log(
+        `✅ Translation successful: "${text}" -> "${translatedText}"`,
+      );
+      return translatedText;
     } catch (error) {
-      console.error("❌ Translation error:", error.message);
-      throw new Error(`Translation failed: ${error.message}`);
+      const message = extractErrorMessage(error);
+      console.error("Translation error:", message);
+
+      // Check for specific API errors
+      if (
+        error?.status === 404 ||
+        message.includes("404") ||
+        message.toLowerCase().includes("not found")
+      ) {
+        throw new Error(
+          "API_NOT_ENABLED: The Generative Language API is not enabled. Please enable it at: https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com",
+        );
+      }
+      if (error?.status === 403 || message.includes("403")) {
+        throw new Error(
+          "API_RESTRICTED: Your Gemini API key is restricted. Please check your API key permissions or generate a new one.",
+        );
+      }
+
+      throw new Error(
+        `Translation failed: ${message || "Unknown error"}`,
+      );
     }
   },
 
@@ -216,10 +320,9 @@ Text: "${text}"`;
    */
   async detectLanguage(text) {
     try {
-      const model = getGenAI().getGenerativeModel({ model: MODEL_NAME });
       const prompt = `Identify language of: "${text}". Respond ONLY with ISO 639-1 code.`;
 
-      const result = await generateWithRetry(model, prompt, "low");
+      const result = await generateWithModelFallback(prompt, "low");
       return result.response.text().trim().toLowerCase().substring(0, 2);
     } catch (error) {
       return "en";
@@ -234,10 +337,11 @@ Text: "${text}"`;
     try {
       console.log("🎤 Audio transcription requested (High Priority)...");
 
-      const genAI = getGenAI();
-
-      // Use gemini-2.5-flash which supports audio
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      // Use gemini-1.5-flash which supports audio
+      const audioModelCandidates = getModelCandidates([
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+      ]);
 
       // Extract base64 data without the data URL prefix
       let base64Audio = audioData;
@@ -258,10 +362,10 @@ Text: "${text}"`;
         "Please transcribe the audio content into text. Only return the spoken text, nothing else.";
 
       try {
-        const result = await generateWithRetry(
-          model,
+        const result = await generateWithModelFallback(
           [prompt, audioPart],
           "high",
+          audioModelCandidates,
         );
         const transcription = result.response.text().trim();
 
@@ -280,8 +384,8 @@ Text: "${text}"`;
 
         // Check if it's a model not supporting audio
         if (
-          apiError.message.includes("does not support") ||
-          apiError.message.includes("multimodal")
+          extractErrorMessage(apiError).includes("does not support") ||
+          extractErrorMessage(apiError).includes("multimodal")
         ) {
           console.warn(
             "⚠️ Current model doesn't support audio, falling back...",
@@ -292,7 +396,7 @@ Text: "${text}"`;
         throw apiError;
       }
     } catch (error) {
-      console.error("❌ Audio transcription error:", error.message);
+      console.error("Audio transcription error:", extractErrorMessage(error));
       // Return a helpful fallback message instead of throwing error
       return "Audio transcription failed. Please try again or type your message manually.";
     }
