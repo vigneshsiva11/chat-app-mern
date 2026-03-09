@@ -116,10 +116,16 @@ const VoiceRecorder = ({ onTranscription }) => {
     setIsTranscribing(true);
 
     try {
-      const response = await axios.post("/api/ai/transcribe", {
-        audioData: base64Audio,
-        mimeType: "audio/webm",
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/ai/transcribe`,
+        {
+          audioData: base64Audio,
+          mimeType: "audio/webm",
+        },
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
 
       if (response.data.success) {
         const transcription = response.data.transcription;

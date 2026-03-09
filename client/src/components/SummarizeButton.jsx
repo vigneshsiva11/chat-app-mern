@@ -20,7 +20,7 @@ const SummarizeButton = ({ selectedUserId }) => {
       }
 
       const { data } = await axios.post(
-        "/api/ai/summarize",
+        `${import.meta.env.VITE_API_URL}/api/ai/summarize`,
         { receiverId: selectedUserId },
         {
           headers: {

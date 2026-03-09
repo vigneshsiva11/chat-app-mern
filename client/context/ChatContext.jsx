@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { AuthContext } from "./Authcontext.jsx";
+import axios from "axios";
 import toast from "react-hot-toast";
 
 export const chatContext = createContext();
@@ -10,13 +11,18 @@ export const ChatProvider = ({ children }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [unseenMessages, setUnseenMessages] = useState({}); // {userId: count}
 
-  const { socket, axios } = useContext(AuthContext);
+  const { socket } = useContext(AuthContext);
 
   //function to get all users for sidebar
 
   const getUsers = async () => {
     try {
-      const { data } = await axios.get("/api/messages/users");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/messages/users`,
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setUsers(data.users);
         setUnseenMessages(data.unseenMessages);
@@ -30,7 +36,12 @@ export const ChatProvider = ({ children }) => {
 
   const getMessages = async (userId) => {
     try {
-      const { data } = await axios.get(`/api/messages/${userId}`);
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/messages/${userId}`,
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setMessages(data.messages);
         // Clear unseen count for this user since we're viewing their messages
@@ -50,8 +61,9 @@ export const ChatProvider = ({ children }) => {
   const sendMessage = async (messageData) => {
     try {
       const { data } = await axios.post(
-        `/api/messages/send/${selectedUser._id}`,
+        `${import.meta.env.VITE_API_URL}/api/messages/send/${selectedUser._id}`,
         messageData,
+        { headers: { token: localStorage.getItem("token") } },
       );
       if (data.success) {
         setMessages((prevMessages) => [...prevMessages, data.newMessage]);
@@ -69,7 +81,12 @@ export const ChatProvider = ({ children }) => {
 
   const deleteMessage = async (messageId) => {
     try {
-      const { data } = await axios.delete(`/api/messages/delete/${messageId}`);
+      const { data } = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/messages/delete/${messageId}`,
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setMessages((prevMessages) =>
           prevMessages.filter((msg) => msg._id !== messageId),
@@ -87,9 +104,15 @@ export const ChatProvider = ({ children }) => {
 
   const editMessage = async (messageId, text) => {
     try {
-      const { data } = await axios.put(`/api/messages/edit/${messageId}`, {
-        text,
-      });
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/messages/edit/${messageId}`,
+        {
+          text,
+        },
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
@@ -116,9 +139,15 @@ export const ChatProvider = ({ children }) => {
 
   const addReaction = async (messageId, emoji) => {
     try {
-      const { data } = await axios.post(`/api/messages/react/${messageId}`, {
-        emoji,
-      });
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/messages/react/${messageId}`,
+        {
+          emoji,
+        },
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
@@ -137,7 +166,12 @@ export const ChatProvider = ({ children }) => {
 
   const removeReaction = async (messageId) => {
     try {
-      const { data } = await axios.delete(`/api/messages/react/${messageId}`);
+      const { data } = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/messages/react/${messageId}`,
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setMessages((prevMessages) =>
           prevMessages.map((msg) =>
@@ -161,7 +195,13 @@ export const ChatProvider = ({ children }) => {
       if (selectedUser?._id === newMessage.senderId) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
         // Mark as seen since user is actively viewing this chat
-        axios.put(`/api/messages/mark/${newMessage._id}`);
+        axios.put(
+          `${import.meta.env.VITE_API_URL}/api/messages/mark/${newMessage._id}`,
+          {},
+          {
+            headers: { token: localStorage.getItem("token") },
+          },
+        );
       } else {
         // Increment unseen count for the sender
         setUnseenMessages((prevUnseenMessages) => ({

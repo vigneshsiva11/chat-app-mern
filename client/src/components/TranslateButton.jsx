@@ -47,7 +47,7 @@ const TranslateButton = ({ message, onTranslate }) => {
       }
 
       const { data } = await axios.post(
-        "/api/ai/translate",
+        `${import.meta.env.VITE_API_URL}/api/ai/translate`,
         {
           messageId: message._id,
           targetLanguage: langCode,

@@ -4,9 +4,7 @@ import toast from "react-hot-toast";
 import { useState } from "react";
 import { io } from "socket.io-client";
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-axios.defaults.baseURL = backendUrl;
+const backendUrl = import.meta.env.VITE_API_URL;
 
 export const AuthContext = createContext();
 
@@ -20,7 +18,12 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const { data } = await axios.get("/api/auth/check");
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/auth/check`,
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setAuthUser(data.user);
         connectSocket(data.user);
@@ -34,11 +37,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (state, credentials) => {
     try {
-      const { data } = await axios.post(`api/auth/${state}`, credentials);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/auth/${state}`,
+        credentials,
+      );
       if (data.success) {
         setAuthUser(data.userData);
         connectSocket(data.userData);
-        axios.defaults.headers.common["token"] = data.token;
         setToken(data.token);
         localStorage.setItem("token", data.token);
         toast.success(data.message);
@@ -57,7 +62,6 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setAuthUser(null);
     setOnlineUser([]);
-    axios.defaults.headers.common["token"] = null;
     toast.success("Logged out successfully");
     if (socket) socket.disconnect();
   };
@@ -66,7 +70,13 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (body) => {
     try {
-      const { data } = await axios.put("/api/auth/update-profile", body);
+      const { data } = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/auth/update-profile`,
+        body,
+        {
+          headers: { token: localStorage.getItem("token") },
+        },
+      );
       if (data.success) {
         setAuthUser(data.user);
         toast.success("profile updated successfully");
@@ -97,13 +107,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common["token"] = token;
+      checkAuth();
     }
-    checkAuth();
   }, []);
 
   const value = {
-    axios,
     authUser,
     onlineUsers: onlineUser,
     socket,
