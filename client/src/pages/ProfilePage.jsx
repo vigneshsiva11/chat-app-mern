@@ -35,10 +35,10 @@ const ProfilePage = () => {
         <div
           className="w-5/6 max-w-2xl relative z-10 text-gray-300 flex items-center justify-between max-sm:flex-col-reverse rounded-2xl"
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+            background: "rgba(255, 255, 255, 0.1)",
+            backdropFilter: "blur(20px)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            boxShadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
           }}
         >
           <form
@@ -89,7 +89,7 @@ const ProfilePage = () => {
               type="submit"
               className="text-white p-2 rounded-full text-lg cursor-pointer transition-transform hover:scale-[1.02]"
               style={{
-                background: 'linear-gradient(90deg, #a855f7 0%, #7c3aed 100%)'
+                background: "linear-gradient(90deg, #a855f7 0%, #7c3aed 100%)",
               }}
             >
               Save
