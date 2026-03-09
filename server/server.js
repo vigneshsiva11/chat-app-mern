@@ -19,6 +19,9 @@ const server = http.createServer(app);
 const socketOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://chat-here-ws.vercel.app",
+  "https://chat-here-ws-git-main-vigneshsiva076-4156s-projects.vercel.app",
+  "https://chat-here-isimrvs9e-vigneshsiva076-4156s-projects.vercel.app",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -58,7 +61,10 @@ app.use(express.json({ limit: "4mb" }));
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  process.env.FRONTEND_URL, // Your Vercel frontend URL
+  "https://chat-here-ws.vercel.app",
+  "https://chat-here-ws-git-main-vigneshsiva076-4156s-projects.vercel.app",
+  "https://chat-here-isimrvs9e-vigneshsiva076-4156s-projects.vercel.app",
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 app.use(
