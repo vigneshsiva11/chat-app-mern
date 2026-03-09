@@ -4,6 +4,7 @@ import { AuthContext } from "../../context/Authcontext.jsx";
 import AnimatedBackground from "../components/AnimatedBackground";
 import assets from "../assets/assets";
 
+// Profile page component
 const ProfilePage = () => {
   const { authUser, updateProfile } = useContext(AuthContext);
 
