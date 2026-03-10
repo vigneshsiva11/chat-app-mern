@@ -261,62 +261,6 @@ The app will open at `http://localhost:5173`
 3. Copy Cloud Name, API Key, and API Secret
 4. Paste into your `.env` file
 
-## Project Structure
-
-```
-chat-app/
-├── client/                  # Frontend React application
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   │   ├── SmartReplies.jsx
-│   │   │   ├── SummarizeButton.jsx
-│   │   │   ├── TranslateButton.jsx
-│   │   │   ├── VoiceRecorder.jsx
-│   │   │   ├── chatcontainer.jsx
-│   │   │   ├── sidebar.jsx
-│   │   │   └── rightsidebar.jsx
-│   │   ├── context/         # React Context providers
-│   │   │   ├── AuthContext.jsx
-│   │   │   └── ChatContext.jsx
-│   │   ├── pages/          # Page components
-│   │   │   ├── HomePage.jsx
-│   │   │   ├── LoginPage.jsx
-│   │   │   └── ProfilePage.jsx
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   └── vite.config.js
-│
-├── server/                  # Backend Node.js application
-│   ├── controllers/         # Route controllers
-│   │   ├── aiController.js
-│   │   ├── messageController.js
-│   │   └── userController.js
-│   ├── models/             # Mongoose schemas
-│   │   ├── User.js
-│   │   ├── Message.js
-│   │   ├── ChatSummary.js
-│   │   └── ModerationLog.js
-│   ├── routes/             # API routes
-│   │   ├── aiRoutes.js
-│   │   ├── messageRoutes.js
-│   │   └── userRoutes.js
-│   ├── services/           # Business logic
-│   │   ├── aiService.js
-│   │   └── cacheService.js
-│   ├── middleware/         # Express middleware
-│   │   ├── moderationMiddleware.js
-│   │   └── auth.js
-│   ├── lib/                # Utility functions
-│   │   ├── cloudinary.js
-│   │   ├── db.js
-│   │   └── utils.js
-│   ├── server.js           # Entry point
-│   └── package.json
-│
-└── README.md
-```
-
 ## API Endpoints
 
 ### Authentication
@@ -481,5 +425,6 @@ Contributions are welcome! Please follow these steps:
 - [Tailwind CSS](https://tailwindcss.com/) - For styling
 
 **Star ⭐ this repository if you find it helpful!**
+
 
 
