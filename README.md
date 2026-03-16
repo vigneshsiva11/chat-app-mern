@@ -388,7 +388,6 @@ The app will open at `http://localhost:5173`
 - **Image Optimization**: Cloudinary CDN with automatic format conversion
 - **Database Indexing**: Optimized queries with compound indexes
 - **TTL Expiration**: Automatic cleanup of old chat summaries
-- **WebSocket Optimization**: Efficient event handling with Socket.io rooms
 
 ## Contributing
 
