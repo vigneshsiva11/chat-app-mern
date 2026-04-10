@@ -1,5 +1,9 @@
 ﻿# AI-Powered Real-Time Chat App
 
+## Live link :
+
+https://chat-here-ws.vercel.app/
+
 A modern, full-stack MERN chat application featuring real-time messaging, comprehensive AI capabilities powered by Google Gemini, and a beautiful glassmorphic UI. Experience intelligent conversations with built-in safety, translation, and voice-to-text features.
 
 ## Key Features
