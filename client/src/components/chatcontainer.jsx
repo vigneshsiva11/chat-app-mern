@@ -626,9 +626,55 @@ const Chatcontainer = () => {
       </div>
     </div>
   ) : (
-    <div className="h-full flex flex-col items-center justify-center gap-2 text-gray-500 bg-white/10 max-md:hidden">
-      <img src={assets.logo_icon} alt="" className="max-w-16" />
-      <p className="text-lg font-medium text-white">Chat anytime</p>
+    <div className="h-full overflow-hidden relative backdrop-blur-lg flex flex-col max-md:hidden text-white">
+      <div
+        className="flex items-center gap-3 mx-4 border-b border-stone-500 shrink-0"
+        style={{ height: "70px", minHeight: "70px" }}
+      >
+        <img
+          src={assets.profile_martin}
+          alt=""
+          className="w-8 rounded-full opacity-90"
+        />
+        <div className="flex-1">
+          <p className="text-lg flex items-center gap-2">
+            Your first conversation
+            <span className="w-2 h-2 rounded-full bg-green-500" />
+          </p>
+          <span className="text-xs text-neutral-400">Chat preview</span>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center gap-4 overflow-y-auto p-6">
+        <div className="self-start max-w-[240px] rounded-2xl rounded-bl-none border border-violet-500/50 bg-violet-500/25 p-3 text-sm text-white">
+          Hi! Once you connect with someone, your messages will appear here.
+        </div>
+        <div className="self-end max-w-[240px] rounded-2xl rounded-br-none border border-violet-500/50 bg-violet-500/40 p-3 text-sm text-white">
+          Great — I can send messages, images, and replies.
+        </div>
+        <div className="text-center text-xs text-neutral-400" role="status">
+          This is a preview. Add another account to start chatting.
+        </div>
+      </div>
+
+      <div className="shrink-0 p-3">
+        <div
+          className="flex items-center gap-3 rounded-full px-4"
+          style={{
+            background: "rgba(139, 92, 246, 0.2)",
+            border: "1px solid rgba(168, 85, 247, 0.4)",
+          }}
+        >
+          <input
+            type="text"
+            disabled
+            placeholder="Send a message when you connect..."
+            className="flex-1 bg-transparent p-3 text-sm text-white outline-none placeholder-gray-400 disabled:cursor-not-allowed"
+          />
+          <img src={assets.gallery_icon} alt="" className="w-5 opacity-50" />
+          <img src={assets.send_button} alt="" className="w-7 opacity-50" />
+        </div>
+      </div>
     </div>
   );
 };

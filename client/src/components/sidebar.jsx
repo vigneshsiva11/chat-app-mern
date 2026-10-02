@@ -72,37 +72,48 @@ const Sidebar = () => {
       </div>
 
       <div className="flex flex-col space-y-2 overflow-y-auto flex-1">
-        {filteredUsers.map((user, index) => (
+        {filteredUsers.length === 0 ? (
           <div
-            onClick={() => setSelectedUser && setSelectedUser(user)}
-            key={index}
-            className={`relative flex items-center gap-3 p-2 pl-4 rounded-md cursor-pointer max-sm:text-sm w-full ${
-              selectedUser?._id === user._id
-                ? "bg-[#282142]/50"
-                : "hover:bg-[#282142]/40"
-            }`}
+            className="rounded-md bg-[#282142]/40 px-4 py-5 text-center text-sm text-neutral-300"
+            role="status"
           >
-            <img
-              src={user?.profilePic || assets.avatar_icon}
-              alt=""
-              className="w-[35px] aspect-[1/1] rounded-full shrink-0"
-            />
+            {input
+              ? "No users match your search."
+              : "You haven't connected with anyone yet."}
+          </div>
+        ) : (
+          filteredUsers.map((user) => (
+            <div
+              onClick={() => setSelectedUser && setSelectedUser(user)}
+              key={user._id}
+              className={`relative flex items-center gap-3 p-2 pl-4 rounded-md cursor-pointer max-sm:text-sm w-full ${
+                selectedUser?._id === user._id
+                  ? "bg-[#282142]/50"
+                  : "hover:bg-[#282142]/40"
+              }`}
+            >
+              <img
+                src={user?.profilePic || assets.avatar_icon}
+                alt=""
+                className="w-[35px] aspect-[1/1] rounded-full shrink-0"
+              />
 
-            <div className="flex flex-col leading-5">
-              <p>{user.fullName}</p>
-              {onlineUsers?.includes(user._id) ? (
-                <span className="text-green-400 text-xs">Online</span>
-              ) : (
-                <span className="text-neutral-400 text-xs">Offline</span>
+              <div className="flex flex-col leading-5">
+                <p>{user.fullName}</p>
+                {onlineUsers?.includes(user._id) ? (
+                  <span className="text-green-400 text-xs">Online</span>
+                ) : (
+                  <span className="text-neutral-400 text-xs">Offline</span>
+                )}
+              </div>
+              {unseenMessages?.[user._id] > 0 && (
+                <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">
+                  {unseenMessages[user._id]}
+                </p>
               )}
             </div>
-            {unseenMessages?.[user._id] > 0 && (
-              <p className="absolute top-4 right-4 text-xs h-5 w-5 flex justify-center items-center rounded-full bg-violet-500/50">
-                {unseenMessages[user._id]}
-              </p>
-            )}
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

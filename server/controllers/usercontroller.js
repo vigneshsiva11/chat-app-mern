@@ -11,35 +11,42 @@ export const Signup = async (req, res) => {
 
   try {
     if (!fullName || !email || !password || !bio) {
-      return res.json({ success: false, message: "Missing Details" });
+      return res.status(400).json({ success: false, message: "Please complete every field." });
     }
-    const user = await User.findOne({ email });
+    if (password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters.",
+      });
+    }
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (user) {
-      return res.json({ success: false, message: "User already exists" });
+      return res.status(409).json({ success: false, message: "An account with this email already exists." });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newuser = await User.create({
-      fullName,
-      email,
+      fullName: fullName.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
       bio,
     });
 
     const token = generateToken(newuser._id);
 
-    res.json({
+    res.status(201).json({
       success: true,
       message: "User Account created successfully",
       userData: newuser,
       token,
     });
   } catch (error) {
-    console.log(error.message);
-    res.json({
+    console.error("Signup error:", error.message);
+    res.status(500).json({
       success: false,
       message: error.message,
     });

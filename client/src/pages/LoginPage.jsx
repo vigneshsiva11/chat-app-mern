@@ -8,6 +8,7 @@ const LoginPage = () => {
   const [Fullname, setFullname] = useState("");
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [bio, setbio] = useState("");
   const [isDataSubmitted, setisDataSubmitted] = useState(false);
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -137,18 +138,30 @@ const LoginPage = () => {
                     border: '1px solid rgba(255, 255, 255, 0.3)'
                   }}
                 />
-                <input
-                  onChange={(e) => setpassword(e.target.value)}
-                  value={password}
-                  type="password"
-                  placeholder="Enter password"
-                  required
-                  className="w-full p-3 mb-4 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.15)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)'
-                  }}
-                />
+                <div className="relative mb-4">
+                  <input
+                    onChange={(e) => setpassword(e.target.value)}
+                    value={password}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter password"
+                    minLength={6}
+                    required
+                    className="w-full p-3 pr-20 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-purple-200 hover:text-white focus:outline-none focus:ring-2 focus:ring-purple-300 rounded"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </>
             )}
 

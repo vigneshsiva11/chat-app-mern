@@ -4,7 +4,14 @@ import toast from "react-hot-toast";
 import { useState } from "react";
 import { io } from "socket.io-client";
 
-const backendUrl = import.meta.env.VITE_API_URL;
+// Support the original environment-variable name as well as the one documented
+// in .env.example. Remove a trailing slash so endpoint paths are always valid.
+const backendUrl = (
+  import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_API_URL || ""
+).replace(/\/$/, "");
+
+const getRequestErrorMessage = (error, fallback) =>
+  error.response?.data?.message || error.message || fallback;
 
 export const AuthContext = createContext();
 
@@ -19,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const checkAuth = async () => {
     try {
       const { data } = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/auth/check`,
+        `${backendUrl}/api/auth/check`,
         {
           headers: { token: localStorage.getItem("token") },
         },
@@ -29,7 +36,7 @@ export const AuthProvider = ({ children }) => {
         connectSocket(data.user);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getRequestErrorMessage(error, "Unable to check your session."));
     }
   };
 
@@ -38,7 +45,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (state, credentials) => {
     try {
       const { data } = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/auth/${state}`,
+        `${backendUrl}/api/auth/${state}`,
         credentials,
       );
       if (data.success) {
@@ -51,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getRequestErrorMessage(error, "Unable to authenticate. Please try again."));
     }
   };
 
@@ -71,7 +78,7 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (body) => {
     try {
       const { data } = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/auth/update-profile`,
+        `${backendUrl}/api/auth/update-profile`,
         body,
         {
           headers: { token: localStorage.getItem("token") },
@@ -84,7 +91,7 @@ export const AuthProvider = ({ children }) => {
         toast.error(data.message || "Failed to update profile");
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getRequestErrorMessage(error, "Failed to update profile."));
     }
   };
 
