@@ -1,6 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../context/Authcontext.jsx";
+import { AuthContext } from "../../context/AuthContext";
 import AnimatedBackground from "../components/AnimatedBackground";
 import assets from "../assets/assets";
 

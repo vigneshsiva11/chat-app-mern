@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useContext, useState } from "react";
-import assets, { messagesDummyData } from "../assets/assets";
+import assets from "../assets/assets";
 import { formatMessageTime } from "../lib/utils";
-import { chatContext } from "../../context/ChatContext.jsx";
-import { AuthContext } from "../../context/Authcontext.jsx";
+import { chatContext } from "../../context/ChatContext";
+import { AuthContext } from "../../context/AuthContext";
 import toast from "react-hot-toast";
 import SummarizeButton from "./SummarizeButton";
 import TranslateButton from "./TranslateButton";

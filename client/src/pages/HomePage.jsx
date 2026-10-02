@@ -3,7 +3,7 @@ import Sidebar from "../components/sidebar";
 import Chatcontainer from "../components/chatcontainer";
 import Rightsidebar from "../components/rightsidebar";
 import AnimatedBackground from "../components/AnimatedBackground";
-import { chatContext } from "../../context/ChatContext.jsx";
+import { chatContext } from "../../context/ChatContext";
 import "../components/ChatLayout.css";
 
 const HomePage = () => {

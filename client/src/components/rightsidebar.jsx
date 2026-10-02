@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from "react";
-import assets, { imagesDummyData } from "../assets/assets";
-import { chatContext } from "../../context/ChatContext.jsx";
-import { AuthContext } from "../../context/Authcontext.jsx";
+import assets from "../assets/assets";
+import { chatContext } from "../../context/ChatContext";
+import { AuthContext } from "../../context/AuthContext";
 
 // Accept both prop casings for robustness
 const Rightsidebar = ({ Selecteduser }) => {

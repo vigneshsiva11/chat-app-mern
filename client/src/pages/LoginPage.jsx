@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import AnimatedBackground from "../components/AnimatedBackground";
 import assets from "../assets/assets";
-import { AuthContext } from "../../context/Authcontext";
+import { AuthContext } from "../../context/AuthContext";
 
 const LoginPage = () => {
   const [currState, setCurrState] = useState("Sign up");

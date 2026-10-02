@@ -1,8 +1,9 @@
-import { createContext, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { io } from "socket.io-client";
+import { AuthContext } from "./AuthContext";
 
 // Support the original environment-variable name as well as the one documented
 // in .env.example. Remove a trailing slash so endpoint paths are always valid.
@@ -13,17 +14,33 @@ const backendUrl = (
 const getRequestErrorMessage = (error, fallback) =>
   error.response?.data?.message || error.message || fallback;
 
-export const AuthContext = createContext();
-
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [authUser, setAuthUser] = useState(null);
   const [onlineUser, setOnlineUser] = useState([]);
   const [socket, setSocket] = useState(null);
+  const socketRef = useRef(null);
+
+  // Connect only once per authenticated session. The ref avoids reconnecting
+  // while React state updates after the Socket.IO client is created.
+  const connectSocket = useCallback((userData) => {
+    if (!userData || socketRef.current?.connected) return;
+
+    const newSocket = io(backendUrl, {
+      query: {
+        userId: userData._id,
+      },
+    });
+    socketRef.current = newSocket;
+    setSocket(newSocket);
+    newSocket.on("getOnlineUsers", (userIds) => {
+      setOnlineUser(userIds);
+    });
+  }, []);
 
   // check if user is authenticated , set the user data and connect the socket
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/auth/check`,
@@ -38,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       toast.error(getRequestErrorMessage(error, "Unable to check your session."));
     }
-  };
+  }, [connectSocket]);
 
   //login function to handle usr authentication and socket connectionl
 
@@ -70,7 +87,9 @@ export const AuthProvider = ({ children }) => {
     setAuthUser(null);
     setOnlineUser([]);
     toast.success("Logged out successfully");
-    if (socket) socket.disconnect();
+    socketRef.current?.disconnect();
+    socketRef.current = null;
+    setSocket(null);
   };
 
   // update profile function to handle user profile updates
@@ -95,28 +114,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // connect socket function to handle socket connection and online users updates
-
-  const connectSocket = (userData) => {
-    if (!userData || socket?.connected) return;
-
-    const newSocket = io(backendUrl, {
-      query: {
-        userId: userData._id,
-      },
-    });
-    newSocket.connect();
-    setSocket(newSocket);
-    newSocket.on("getOnlineUsers", (userIds) => {
-      setOnlineUser(userIds);
-    });
-  };
-
   useEffect(() => {
     if (token) {
       checkAuth();
     }
-  }, []);
+  }, [checkAuth, token]);
 
   const value = {
     authUser,
